@@ -1,0 +1,4 @@
+RUN rpm -e --root=/mnt/sys-root --allmatches --nodeps \
+    bash \
+    gpg-pubkey; \
+    dnf --installroot /mnt/sys-root clean all;

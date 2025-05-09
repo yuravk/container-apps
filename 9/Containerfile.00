@@ -1,0 +1,7 @@
+ARG VERSION=9
+FROM almalinux:${VERSION} AS system-build
+
+ARG VERSION
+RUN mkdir -p /mnt/sys-root; \
+    dnf install --installroot /mnt/sys-root coreutils-single glibc-minimal-langpack \
+    --releasever ${VERSION} --setopt install_weak_deps=false --nodocs -y;
