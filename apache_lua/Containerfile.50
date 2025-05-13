@@ -1,0 +1,60 @@
+RUN dnf install --installroot /mnt/sys-root httpd mod_lua \
+    --setopt install_weak_deps=false --nodocs -y; \
+    dnf --installroot /mnt/sys-root clean all;
+
+RUN rpm -e --root=/mnt/sys-root --nodeps \
+almalinux-repos \
+almalinux-gpg-keys \
+gpg-pubkey \
+bash \
+almalinux-release \
+coreutils-single \
+glibc-common \
+tzdata \
+ncurses-libs \
+ncurses-base \
+glibc-minimal-langpack \
+libattr \
+pcre2-syntax \
+libsepol \
+libacl \
+acl \
+almalinux-logos-httpd \
+alternatives \
+audit-libs \
+bzip2-libs \
+ca-certificates \
+cracklib \
+cracklib-dicts \
+dbus \
+dbus-broker \
+dbus-common \
+grep \
+gzip \
+kmod-libs \
+libblkid \
+libcap-ng \
+libdb \
+libeconf \
+libfdisk \
+libffi \
+libmount \
+libpwquality \
+libseccomp \
+libsemanage \
+libsigsegv \
+libsmartcols \
+libtasn1 \
+libutempter \
+openssl \
+p11-kit \
+p11-kit-trust \
+pam \
+readline \
+sed \
+shadow-utils \
+systemd \
+systemd-pam \
+systemd-rpm-macros \
+util-linux \
+util-linux-core

@@ -20,6 +20,7 @@ on:
           options:
             - pico
             - nginx
+            - apache_lua
 
 env:
   # Latest version

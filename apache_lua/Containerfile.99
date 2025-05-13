@@ -1,0 +1,3 @@
+STOPSIGNAL SIGQUIT
+
+CMD ["/usr/sbin/httpd", "-DFOREGROUND"]
