@@ -26,8 +26,8 @@ env:
   # Latest version
   version_latest: 9
 
-  # Platforms list: linux/amd64, linux/ppc64le, linux/s390x, linux/arm64
-  platforms: ${{ contains(inputs.version_major, '10') && 'linux/amd64/v2, linux/amd64, linux/ppc64le, linux/s390x, linux/arm64' || 'linux/amd64, linux/ppc64le, linux/s390x, linux/arm64' }}
+  # Platforms common list
+  platforms: 'linux/amd64, linux/ppc64le, linux/s390x, linux/arm64'
 
   # Registries list:
   registries: 'quay.io/ykohut'
@@ -45,21 +45,32 @@ jobs:
     steps:
 
       -
-        name: Prepare AlmaLinux Minor version number
+        name: Prepare AlmaLinux Minor version number and platforms list
         run: |
+          # AlmaLinux Minor version number and platforms list
+          platforms="${{ env.platforms }}"
           case ${{ inputs.version_major }} in
             8)
-              version_minor=".10" ;;
+              version_minor=".10"
+              platforms="linux/386, ${platforms}"
+              ;;
             9)
-              version_minor=".5"  ;;
+              version_minor=".5"
+              platforms="linux/386, ${platforms}"
+              ;;
             10)
-              version_minor=".0" ;;
+              version_minor=".0"
+              platforms="linux/amd64/v2, ${platforms}"
+              ;;
             10-kitten)
-              version_minor= ;;
+              version_minor=
+              platforms="linux/amd64/v2, ${platforms}"
+              ;;
             *)
               echo "Almalinux ${{ inputs.version_major }} is not supported!" && false
           esac
           echo "version_minor=${version_minor}" >> $GITHUB_ENV
+          echo "platforms=${platforms}" >> $GITHUB_ENV
 
       -
         name: Prepare date stamp
@@ -153,7 +164,7 @@ jobs:
           cat Dockerfile
 
       -
-        name: Build and push
+        name: Build images
         id: build-images
         uses: docker/build-push-action@v5
         with:
@@ -162,6 +173,53 @@ jobs:
           platforms: ${{ env.platforms }}
           build-args: |
             VERSION=${{ inputs.version_major }}
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+      -
+        name: Test images
+        id: test-images
+        run: |
+          # [Test]
+          # Get CMD instruction's binary from the image
+          CMD_EXECUTABLE=$(docker inspect --format='{{index .Config.Cmd 0}}' ${{ steps.build-images.outputs.digest }})
+          [ -z "${CMD_EXECUTABLE}" ] && echo "CMD instruction is not set in the image!" && false
+
+          platforms="${{ env.platforms }}"
+          for platform in ${platforms//,/ }; do
+            case $platform in
+              linux/386)
+                LD_LINUX_SO="/usr/lib/ld-linux.so.2" ;;
+              linux/amd64)
+                LD_LINUX_SO="/usr/lib64/ld-linux-x86-64.so.2" ;;
+              linux/ppc64le)
+                LD_LINUX_SO="/usr/lib64/ld64.so.2" ;;
+              linux/s390x)
+                LD_LINUX_SO= ;;
+              linux/arm64)
+                LD_LINUX_SO="/usr/lib/ld-linux-aarch64.so.1" ;;
+            esac
+
+            # Skip platforms where ELF Application Binary interface is not supported
+            # (e.g., linux/s390x)
+            [ -z "${LD_LINUX_SO}" ] && continue
+
+            if docker run --rm --platform=${platform} ${{ steps.build-images.outputs.digest }} ${LD_LINUX_SO} --list ${CMD_EXECUTABLE} 2>&1 | grep -i 'not found'; then
+              echo "[Debug] The above shared libraries are missing for ${CMD_EXECUTABLE} in the image (platform ${platform}) !"
+              false
+            else
+              echo "Checked ${CMD_EXECUTABLE} on platform ${platform}: OK"
+            fi
+          done
+
+      -
+        name: Push images
+        id: push-images
+        uses: docker/build-push-action@v5
+        with:
+          provenance: false
+          context: .
+          platforms: ${{ env.platforms }}
           push: true
-          load: false
           tags: ${{ steps.meta.outputs.tags }}

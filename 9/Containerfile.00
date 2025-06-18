@@ -1,7 +1,15 @@
 ARG VERSION=9
-FROM almalinux:${VERSION} AS system-build
+FROM quay.io/almalinuxorg/almalinux:${VERSION} AS system-build
 
 ARG VERSION
 RUN mkdir -p /mnt/sys-root; \
     dnf install --installroot /mnt/sys-root coreutils-single glibc-minimal-langpack \
     --releasever ${VERSION} --setopt install_weak_deps=false --nodocs -y;
+
+ARG TARGETPLATFORM
+RUN if [ "$TARGETPLATFORM" = "linux/386" ]; then \
+        sed -i -e 's/mirrorlist=/# mirrorlist=/g' \
+        -e 's/# baseurl=/baseurl=/g' \
+        -e 's/repo\.almalinux\.org\/almalinux/vault.almalinux.org/g' \
+        -e 's/\$basearch/i686/g' /mnt/sys-root/etc/yum.repos.d/*.repo; \
+fi
