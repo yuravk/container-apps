@@ -1,0 +1,2 @@
+COPY tests/binaries_list.sh /tests/binaries_list.sh
+RUN sh /tests/binaries_list.sh

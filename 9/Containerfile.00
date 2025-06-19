@@ -1,6 +1,9 @@
 ARG VERSION=9
 FROM quay.io/almalinuxorg/almalinux:${VERSION} AS system-build
 
+# The file utility is required to run tests
+RUN dnf install -y -q file
+
 ARG VERSION
 RUN mkdir -p /mnt/sys-root; \
     dnf install --installroot /mnt/sys-root coreutils-single glibc-minimal-langpack \

@@ -52,19 +52,19 @@ jobs:
           case ${{ inputs.version_major }} in
             8)
               version_minor=".10"
-              platforms="linux/386, ${platforms}"
+              platforms="${platforms}, linux/386"
               ;;
             9)
               version_minor=".5"
-              platforms="linux/386, ${platforms}"
+              platforms="${platforms}, linux/386"
               ;;
             10)
               version_minor=".0"
-              platforms="linux/amd64/v2, ${platforms}"
+              platforms="${platforms}, linux/amd64/v2"
               ;;
             10-kitten)
               version_minor=
-              platforms="linux/amd64/v2, ${platforms}"
+              platforms="${platforms}, linux/amd64/v2"
               ;;
             *)
               echo "Almalinux ${{ inputs.version_major }} is not supported!" && false
@@ -150,7 +150,7 @@ jobs:
           # Find files matching the path mask '*/Containerfile.*' (i.e., in subdirectories),
           # sort them based on their filenames,
           # and then create a single space-separated string of their full paths.
-          containerfiles_sorted=$(find {${{ inputs.version_major }},${{ matrix.image_types }}} -name Containerfile.\* -type f -printf '%f\t%p\n' 2>/dev/null | \
+          containerfiles_sorted=$(find {${{ inputs.version_major }},${{ matrix.image_types }},tests} -name Containerfile.\* -type f -printf '%f\t%p\n' 2>/dev/null | \
                                     sort -t$'\t' -k1,1 | \
                                     cut -d$'\t' -f2 | \
                                     paste -sd ' ' -)
@@ -205,12 +205,28 @@ jobs:
             # (e.g., linux/s390x)
             [ -z "${LD_LINUX_SO}" ] && continue
 
-            if docker run --rm --platform=${platform} ${{ steps.build-images.outputs.digest }} ${LD_LINUX_SO} --list ${CMD_EXECUTABLE} 2>&1 | grep -i 'not found'; then
-              echo "[Debug] The above shared libraries are missing for ${CMD_EXECUTABLE} in the image (platform ${platform}) !"
-              false
-            else
-              echo "Checked ${CMD_EXECUTABLE} on platform ${platform}: OK"
-            fi
+            # Creates a writeable container layer over the image and get binaries.list from it
+            container_name="test_${{ inputs.application }}_${{ inputs.version_major }}_${platform/\//_}"
+            docker create --platform=${platform} --name ${container_name} ${{ steps.build-images.outputs.digest }} >/dev/null
+            rm -f binaries.list
+            docker cp ${container_name}:/tmp/binaries.list . >/dev/null
+            docker rm -f ${container_name} >/dev/null
+
+            echo "[Debug] Testing platform ${platform} binaries with ${LD_LINUX_SO}"
+            for EXECUTABLE in $(cat binaries.list); do
+              # Fail tests if no executables are in the list
+              [ -z "${EXECUTABLE}" ] && false
+
+              # Skip dynamic linker configuration tool (ldconfig) to be inspected by dynamic linker
+              [ "${EXECUTABLE}" = "/usr/sbin/ldconfig" ] && continue
+
+              if docker run --rm --platform=${platform} ${{ steps.build-images.outputs.digest }} ${LD_LINUX_SO} --list ${EXECUTABLE}; then
+                echo "Checked ${EXECUTABLE} on platform ${platform}: OK"
+              else
+                echo "[Debug] Some shared libraries are missing for ${EXECUTABLE} in the image (platform ${platform}) !"
+                false
+              fi
+            done
           done
 
       -
