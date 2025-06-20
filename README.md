@@ -178,3 +178,84 @@ This example demonstrates how to run the Nginx container and serve a simple HTML
     ```
 
     Both commands should display the "Hello World from Nginx!" message from your `index.html` file.
+
+### Apache + Lua Example
+
+This example demonstrates how to run the Apache container with `mod_lua` and execute a simple Lua script.
+
+1.  **Prepare your Lua script and HTML content directory:**
+
+    Create a directory named `html` in your current working directory. Inside the `html` directory, create a `hello.lua` file with the following content. This script will be served by Apache.
+
+    ```lua
+    -- /var/www/lua/hello.lua -- (This comment indicates expected path inside container, actual local path is html/hello.lua)
+    require "apache2"
+
+    function handle(r)
+        -- Set the content type for the response
+        r.content_type = "text/html"
+        r:puts("<h1>Hello World from Lua on Apache!</h1>")
+
+        -- Return OK to indicate successful handling
+        return apache2.OK
+    end
+    ```
+    *Note: The user's original example had `r.content_type = "text/plain"` commented out and `r:puts("Hello World from Lua on Apache!")` commented out. The example below uses the HTML version as it's more common for web examples and matches the final `curl` output.*
+
+2.  **Create Apache configuration for Lua:**
+
+    Create a directory named `conf.d` in your current working directory. Inside `conf.d`, create a file named `lua_example.conf` with the following content. This tells Apache how to handle `.lua` files.
+
+    ```apache
+    <IfModule lua_module>
+        AddHandler lua-script .lua
+    </IfModule>
+    ```
+
+3.  **Run the Apache + Lua container:**
+
+    Use the following command to run the `apache_lua` container. This command mounts:
+    *   Your `html` directory to `/var/www/html` in the container (Apache's default document root).
+    *   Your `lua_example.conf` to `/etc/httpd/conf.d/lua_example.conf` in the container.
+    It also maps port 80 on your host to port 80 in the container. Replace `quay.io/ykohut/9-apache_lua:latest` if you are using a different image name or tag.
+
+    ```bash
+    docker run -d --rm -v $(pwd)/html:/var/www/html -v $(pwd)/conf.d/lua_example.conf:/etc/httpd/conf.d/lua_example.conf -p 80:80 quay.io/ykohut/9-apache_lua:latest
+    ```
+    *   `-d`: Run container in detached mode.
+    *   `--rm`: Automatically remove the container when it exits.
+    *   `-v $(pwd)/html:/var/www/html`: Mounts the local `html` directory.
+    *   `-v $(pwd)/conf.d/lua_example.conf:/etc/httpd/conf.d/lua_example.conf`: Mounts the Lua Apache configuration.
+    *   `-p 80:80`: Maps port 80 on the host to port 80 on the container.
+    *   `quay.io/ykohut/9-apache_lua:latest`: The image to use. Adjust if different.
+
+4.  **Check if the container is running:**
+
+    You can list your running Docker containers using:
+
+    ```bash
+    docker ps
+    ```
+
+    You should see output similar to this (the container ID and name will vary):
+
+    ```
+    CONTAINER ID   IMAGE                                COMMAND                  CREATED         STATUS         PORTS                                 NAMES
+    017138103cf4   quay.io/ykohut/9-apache_lua:latest   "/usr/sbin/httpd -DF…"   7 minutes ago   Up 7 minutes   0.0.0.0:80->80/tcp, [::]:80->80/tcp   focused_lichterman
+    ```
+
+5.  **Verify Apache + Lua is working:**
+
+    You can test if Apache is serving the Lua script by accessing `http://127.0.0.1/hello.lua` (or `http://localhost/hello.lua`) using `curl`:
+
+    ```bash
+    curl http://127.0.0.1/hello.lua
+    ```
+
+6.  **Expected Output:**
+
+    The output from the `curl` command should be:
+
+    ```html
+    <h1>Hello World from Lua on Apache!</h1>
+    ```
