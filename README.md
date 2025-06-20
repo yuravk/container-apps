@@ -110,6 +110,72 @@ The primary way to build these container images is by using the provided GitHub 
 
 The dynamic Dockerfile generation and testing are all handled by the workflow.
 
+## Image Details
+
+This section provides some specific details about the resulting images, such as root filesystem size and the list of installed RPM packages.
+
+### Nginx
+
+*   **Rootfs Size:** Approximately 19 Mb
+*   **Installed RPM Packages (12):**
+    ```
+    basesystem-11-13.el9.noarch
+    crypto-policies-20240828-2.git626aa59.el9_5.noarch
+    filesystem-3.16-5.el9.x86_64
+    glibc-2.34-125.el9_5.8.alma.1.x86_64
+    libxcrypt-4.4.18-3.el9.x86_64
+    nginx-1.20.1-20.el9.alma.1.x86_64
+    nginx-core-1.20.1-20.el9.alma.1.x86_64
+    nginx-filesystem-1.20.1-20.el9.alma.1.noarch
+    openssl-libs-3.2.2-6.el9_5.1.x86_64
+    pcre-8.44-4.el9.x86_64
+    setup-2.13.7-10.el9.noarch
+    zlib-1.2.11-40.el9.x86_64
+    ```
+
+### Apache + Lua
+
+*   **Rootfs Size:** Approximately 33 Mb
+*   **Installed RPM Packages (36):**
+    ```
+    apr-1.7.0-12.el9_3.x86_64
+    apr-util-1.6.1-23.el9.x86_64
+    apr-util-bdb-1.6.1-23.el9.x86_64
+    basesystem-11-13.el9.noarch
+    crypto-policies-20250128-1.git5269e22.el9.noarch
+    expat-2.5.0-5.el9_6.x86_64
+    filesystem-3.16-5.el9.x86_64
+    glibc-2.34-168.el9_6.19.x86_64
+    httpd-2.4.62-4.el9.x86_64
+    httpd-core-2.4.62-4.el9.x86_64
+    httpd-filesystem-2.4.62-4.el9.noarch
+    httpd-tools-2.4.62-4.el9.x86_64
+    libbrotli-1.0.9-7.el9_5.x86_64
+    libcap-2.48-9.el9_2.x86_64
+    libdb-5.3.28-55.el9.x86_64
+    libffi-3.4.2-8.el9.x86_64
+    libgcc-11.5.0-5.el9_5.alma.1.x86_64
+    libgcrypt-1.10.0-11.el9.x86_64
+    libgpg-error-1.42-5.el9.x86_64
+    libselinux-3.6-3.el9.x86_64
+    libtasn1-4.16.0-9.el9.x86_64
+    libuuid-2.37.4-21.el9.x86_64
+    libxcrypt-4.4.18-3.el9.x86_64
+    libzstd-1.5.5-1.el9.x86_64
+    lua-libs-5.4.4-4.el9.x86_64
+    lz4-libs-1.9.3-5.el9.x86_64
+    mailcap-2.1.49-5.el9.noarch
+    mod_lua-2.4.62-4.el9.x86_64
+    openssl-libs-3.2.2-6.el9_5.1.x86_64
+    p11-kit-0.25.3-3.el9_5.x86_64
+    pcre-8.44-4.el9.x86_64
+    pcre2-10.40-6.el9.x86_64
+    setup-2.13.7-10.el9.noarch
+    systemd-libs-252-51.el9.alma.1.x86_64
+    xz-libs-5.2.5-8.el9_0.x86_64
+    zlib-1.2.11-40.el9.x86_64
+    ```
+
 ## Usage Examples
 
 This section provides practical examples of how to run the containerized applications.
