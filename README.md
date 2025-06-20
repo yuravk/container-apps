@@ -200,7 +200,6 @@ This example demonstrates how to run the Apache container with `mod_lua` and exe
         return apache2.OK
     end
     ```
-    *Note: The user's original example had `r.content_type = "text/plain"` commented out and `r:puts("Hello World from Lua on Apache!")` commented out. The example below uses the HTML version as it's more common for web examples and matches the final `curl` output.*
 
 2.  **Create Apache configuration for Lua:**
 
