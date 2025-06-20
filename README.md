@@ -47,9 +47,12 @@ Key features of the workflow include:
     *   `version_major`: The AlmaLinux major version (e.g., `9`).
     *   `application`: The name of the application to build (e.g., `pico`, `nginx`, `apache_lua`).
 *   **Dynamic Dockerfile Generation:**
-    *   The workflow does not use a static `Dockerfile`. Instead, it dynamically constructs one by concatenating various `Containerfile.*` fragments.
-    *   The fragments are sourced from the base OS version directory (e.g., `9/`), the selected application's directory (e.g., `pico/`), and the `tests/` directory.
-    *   Files are concatenated in lexicographical order of their names (e.g., `Containerfile.00`, `Containerfile.50`, `Containerfile.60`).
+    *   The workflow does not use a static `Dockerfile`. Instead, as detailed in its "Generate Dockerfile" step, it dynamically constructs one by finding and concatenating various `Containerfile.NN` fragments.
+    *   These fragments are sourced from three distinct locations:
+        1.  The base AlmaLinux OS major version directory (e.g., `9/`).
+        2.  The selected application's directory (e.g., `pico/`, `nginx/`, or `apache_lua/`).
+        3.  The common `tests/` directory.
+    *   The key to the construction is the ordering: all discovered `Containerfile.NN` files from these locations are sorted numerically based on the `NN` part of their filenames (e.g., `Containerfile.00` from the OS directory, followed by `Containerfile.50` from the application directory, and then `Containerfile.60` from the tests directory). The sorted files are then concatenated in this precise order to form the final `Dockerfile` used for the build.
 *   **Multi-Platform Builds:** Images are built for the following platforms:
     *   `linux/amd64`
     *   `linux/ppc64le`
