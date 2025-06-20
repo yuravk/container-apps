@@ -109,3 +109,72 @@ The primary way to build these container images is by using the provided GitHub 
         ```
 
 The dynamic Dockerfile generation and testing are all handled by the workflow.
+
+## Usage Examples
+
+This section provides practical examples of how to run the containerized applications.
+
+### Nginx Example
+
+This example demonstrates how to run the Nginx container and serve a simple HTML page.
+
+1.  **Prepare your web content:**
+
+    Create a directory named `html` in your current working directory. Inside the `html` directory, create an `index.html` file with the following content:
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>Nginx</title>
+    </head>
+    <body>
+      <h2>Hello World from Nginx!</h2>
+    </body>
+    </html>
+    ```
+
+2.  **Run the Nginx container:**
+
+    Use the following command to run the Nginx container. This command mounts your `html` directory into the container at `/usr/share/nginx/html` (the default Nginx web root) and maps port 80 on your host to port 80 in the container. Replace `9-nginx:latest` if you are using a different image name or tag.
+
+    ```bash
+    docker run -d --rm -v $(pwd)/html:/usr/share/nginx/html -p 80:80 quay.io/ykohut/9-nginx:latest
+    ```
+    *   `-d`: Run container in detached mode.
+    *   `--rm`: Automatically remove the container when it exits.
+    *   `-v $(pwd)/html:/usr/share/nginx/html`: Mounts the local `html` directory to `/usr/share/nginx/html` in the container.
+    *   `-p 80:80`: Maps port 80 on the host to port 80 on the container.
+    *   `quay.io/ykohut/9-nginx:latest`: The image to use. Adjust if your image name/tag is different (e.g., if you built it locally without pushing to this specific registry path).
+
+3.  **Check if the container is running:**
+
+    You can list your running Docker containers using:
+
+    ```bash
+    docker ps
+    ```
+
+    You should see output similar to this (the container ID and name will vary):
+
+    ```
+    CONTAINER ID   IMAGE                             COMMAND                  CREATED         STATUS         PORTS                NAMES
+    236a60f35a13   quay.io/ykohut/9-nginx:latest   "/usr/sbin/nginx -g …"   5 seconds ago   Up 5 seconds   0.0.0.0:80->80/tcp   great_visvesvaraya
+    ```
+
+4.  **Verify Nginx is serving content:**
+
+    You can test if Nginx is working by accessing `http://localhost:80` in your web browser, or by using a command-line tool like `lynx` or `curl`.
+
+    Using `lynx`:
+    ```bash
+    lynx localhost:80
+    ```
+
+    Using `curl`:
+    ```bash
+    curl localhost:80
+    ```
+
+    Both commands should display the "Hello World from Nginx!" message from your `index.html` file.
